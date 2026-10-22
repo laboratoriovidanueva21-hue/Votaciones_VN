@@ -1,0 +1,73 @@
+SISTEMA DE VOTACIÓN ESCOLAR - PHP + MYSQL PARA XAMPP
+
+REQUISITOS
+- XAMPP con Apache, MySQL y PHP 8.0 o superior recomendado.
+- Navegador web.
+
+INSTALACIÓN
+1. Descomprime la carpeta "votaciones_xampp" dentro de:
+   C:\xampp\htdocs\
+   Puedes renombrarla a "votaciones" si deseas usar http://localhost/votaciones/
+
+2. Abre XAMPP Control Panel y pulsa Start en Apache y MySQL.
+
+3. Abre http://localhost/phpmyadmin
+   Entra a la pestaña Importar y selecciona:
+   database/colegio_votaciones.sql
+   Ejecuta la importación.
+   Si ya instalaste el sistema, vuelve a importar el archivo para crear la tabla
+   estudiantes_autorizados sin borrar los votos existentes.
+
+4. Abre config/configuracion.php y personaliza:
+   NOMBRE_COLEGIO
+   NOMBRE_LISTA_1
+   NOMBRE_LISTA_2
+   Cambia HASH_SECRET por una clave larga, aleatoria y privada ANTES de cargar el padrón o empezar a registrar votos.
+   No cambies HASH_SECRET después de cargar el padrón o registrar votos: las cédulas autorizadas y las ya usadas dejarían de reconocerse.
+
+5. Si tu MySQL de XAMPP tiene contraseña, actualiza $password en config/conexion.php.
+   La configuración típica de XAMPP es usuario root y contraseña vacía.
+
+6. Abre:
+   http://localhost/votaciones_xampp/instalar_admin.php
+   (si renombraste la carpeta, usa el nombre nuevo)
+   Crea un usuario y una contraseña de administrador de al menos 10 caracteres.
+   Después de crear la cuenta, ELIMINA instalar_admin.php de la carpeta del proyecto.
+
+7. Abre la web:
+   http://localhost/votaciones_xampp/
+   Panel de resultados:
+   http://localhost/votaciones_xampp/admin/login.php
+
+FUNCIONAMIENTO
+- Se solicita una cédula ecuatoriana de 10 dígitos.
+- El administrador carga el padrón autorizado desde el panel; cada carga
+  reemplaza la lista anterior. Solo las cédulas del padrón pueden votar.
+- El padrón puede pegarse en el panel o cargarse como CSV, Excel .xlsx, SQLite
+  .db/.sqlite o un respaldo SQL .sql. En SQLite se puede detectar la tabla y el
+  campo; en SQL se deben indicar y el respaldo debe incluir INSERT con nombres
+  de columnas. El importador solo lee filas INSERT de esa tabla/campo y nunca
+  ejecuta sentencias del archivo. Cada sentencia INSERT puede tener hasta
+  128 MB y se admiten hasta 100.000 cédulas por carga.
+- Desde el panel también se puede subir una foto JPG, PNG o WEBP para Lista A,
+  Lista B y Voto nulo; estas aparecen encima de las opciones al votar. Máximo
+  5 MB por foto.
+- El tamaño máximo del padrón en la aplicación es 1000 MB. php.ini de XAMPP
+  debe tener upload_max_filesize=1000M, post_max_size=1050M,
+  max_input_time=300 y max_execution_time=300. Esto también eleva el límite
+  de subida de phpMyAdmin. Reinicia Apache desde el panel de XAMPP.
+- La importación de archivos SQL muy grandes en phpMyAdmin puede exceder
+  el tiempo de ejecución de PHP o los límites de MySQL; para respaldos grandes
+  usa la importación por consola de MySQL.
+- La lista se procesa como huellas HMAC y no se conserva en texto plano.
+- El sistema calcula una huella HMAC de la cédula; no guarda el número original.
+- La huella tiene un índice UNIQUE para impedir votos duplicados, incluso si llegan solicitudes simultáneas.
+- El voto se guarda en una tabla separada y no tiene una referencia directa a la huella.
+- Al seleccionar una opción, el voto se registra directamente, sin pantalla de confirmación.
+- El panel administrativo muestra votos de Lista 1, Lista 2, voto nulo y total emitido.
+- Los resultados se actualizan cada 10 segundos.
+
+IMPORTANTE SOBRE PRIVACIDAD Y SEGURIDAD
+Esta estructura evita guardar la cédula en texto original y evita una relación directa en la base de datos entre cédula y opción elegida. Sin embargo, un sistema PHP/MySQL local no equivale a una auditoría independiente de anonimato electoral. El administrador del servidor controla el código y la base de datos; para una elección oficial, se recomienda revisión técnica independiente, HTTPS al publicarlo en internet, copias de seguridad protegidas y pruebas previas.
+
+Para una prueba desde otro dispositivo de la misma red, no uses localhost en el teléfono: usa la IP local de la computadora donde corre XAMPP. No expongas XAMPP directamente a internet sin configuración y seguridad adecuadas.
